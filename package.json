@@ -1,0 +1,20 @@
+{
+  "name": "veterinary-interface",
+  "version": "1.0.0",
+  "description": "Veterinary clinic web application for managing animals and events",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "node kill-ports.js && concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "node kill-ports.js && cd server && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": ["veterinary", "vue", "node", "express", "postgresql"],
+  "author": "Netanel",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

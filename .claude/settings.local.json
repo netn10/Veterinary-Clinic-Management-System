@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(findstr \"3000 3001\")",
+      "Bash(curl -X GET http://localhost:3001/api/animals)",
+      "Bash(curl -X DELETE http://localhost:3001/api/animals/1 -v)",
+      "Bash(curl -X GET http://localhost:3001/api/animals/1 -s)",
+      "Bash(curl -X OPTIONS http://localhost:3001/api/animals/1 -v)",
+      "Bash(findstr \"HTTP\\|Allow\")",
+      "Bash(tasklist)",
+      "Bash(findstr \"node\")",
+      "Bash(dir)",
+      "Bash(findstr \"router\\.\")",
+      "Bash(findstr /C:\"delete\")",
+      "Bash(findstr \"animals\")",
+      "Bash(curl -X DELETE http://localhost:3001/api/animals/1)",
+      "Bash(node -c routes/animals.js)",
+      "Bash(curl http://localhost:3001/api/animals)",
+      "Bash(findstr \"Buddy\")",
+      "Bash(curl -X DELETE http://localhost:3001/api/events/1)",
+      "Bash(curl -X DELETE http://localhost:3001/api/animals/test)",
+      "Bash(curl http://localhost:3001/api/animals/test-new)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
