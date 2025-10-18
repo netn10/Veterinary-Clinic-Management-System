@@ -9,7 +9,13 @@
     "client": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "start": "node kill-ports.js && cd server && npm start",
-    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "lint": "npm run lint:client && npm run lint:server",
+    "lint:client": "cd client && npm run lint",
+    "lint:server": "cd server && npm run lint",
+    "lint:check": "npm run lint:check:client && npm run lint:check:server",
+    "lint:check:client": "cd client && npm run lint:check",
+    "lint:check:server": "cd server && npm run lint:check"
   },
   "keywords": ["veterinary", "vue", "node", "express", "postgresql"],
   "author": "Netanel",

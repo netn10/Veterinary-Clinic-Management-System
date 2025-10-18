@@ -1,34 +1,27 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+const { Pool } = require('pg')
+require('dotenv').config()
 
-// Create data directory if it doesn't exist
-const dataDir = path.join(__dirname, '../../data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
+// PostgreSQL database configuration
+const pool = new Pool({
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'veterinary_clinic',
+  password: process.env.DB_PASSWORD || 'password',
+  port: process.env.DB_PORT || 5432,
+  // Connection pool settings
+  max: 20, // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 2000 // Return an error after 2 seconds if connection could not be established
+})
 
-// Create SQLite database connection
-const dbPath = path.join(dataDir, 'veterinary_clinic.db');
-const db = new sqlite3.Database(dbPath);
+// Test the connection
+pool.on('connect', () => {
+  console.log('Connected to PostgreSQL database')
+})
 
-// Create a simple query wrapper to match the PostgreSQL interface
-const pool = {
-  query: (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-      if (sql.trim().toLowerCase().startsWith('select')) {
-        db.all(sql, params, (err, rows) => {
-          if (err) reject(err);
-          else resolve({ rows });
-        });
-      } else {
-        db.run(sql, params, function(err) {
-          if (err) reject(err);
-          else resolve({ rows: [{ id: this.lastID }] });
-        });
-      }
-    });
-  }
-};
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err)
+  process.exit(-1)
+})
 
-module.exports = pool;
+module.exports = pool

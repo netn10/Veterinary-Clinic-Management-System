@@ -1,9 +1,7 @@
 # Quick Setup Guide
 
 ## Environment Variables
-
-Create a file `server/.env` with the following content:
-
+Create `server/.env`:
 ```env
 PORT=3001
 DB_HOST=localhost
@@ -15,22 +13,17 @@ NODE_ENV=development
 ```
 
 ## Database Setup
-
 1. Install PostgreSQL
 2. Create database: `CREATE DATABASE veterinary_clinic;`
-3. Update the `.env` file with your PostgreSQL credentials
+3. Update `.env` with your PostgreSQL credentials
 4. Run: `cd server && npm run init-db`
 
 ## Installation
-
 ```bash
-# Install all dependencies
 npm run install-all
-
-# Start development servers
 npm run dev
 ```
 
-The application will be available at:
+**Access:**
 - Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
+- Backend: http://localhost:3001

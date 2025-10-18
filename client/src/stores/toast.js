@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
 
 export const useToastStore = defineStore('toast', {
   state: () => ({
@@ -13,8 +13,8 @@ export const useToastStore = defineStore('toast', {
         message,
         type,
         visible: true
-      }
-      
+      };
+
       this.toasts.push(toast)
 
       // Auto remove after duration
@@ -24,7 +24,7 @@ export const useToastStore = defineStore('toast', {
     },
 
     removeToast(id) {
-      const index = this.toasts.findIndex(t => t.id === id)
+      const index = this.toasts.findIndex((t) => t.id === id)
       if (index !== -1) {
         this.toasts.splice(index, 1)
       }
@@ -40,7 +40,6 @@ export const useToastStore = defineStore('toast', {
 
     info(message, duration) {
       this.addToast(message, 'info', duration)
-    }
+    },
   }
-})
-
+});

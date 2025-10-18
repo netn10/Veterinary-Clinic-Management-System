@@ -1,23 +1,43 @@
 <template>
   <div>
+    <!-- Animal Header -->
     <div class="card animal-header">
       <div class="animal-info">
         <h2>{{ animal?.name || 'Loading...' }}</h2>
-        <p v-if="animal"><strong>Species:</strong> {{ animal.species }} | <strong>Age:</strong> {{ animal.age }} years</p>
+        <div v-if="animal" class="animal-meta">
+          <span class="meta-item">
+            <strong>Species:</strong> {{ animal.species }}
+          </span>
+          <span class="meta-item">
+            <strong>Age:</strong> {{ animal.age }} years
+          </span>
+          <span class="meta-item">
+            <strong>Birth Date:</strong> {{ formatDate(animal.birth_date) }}
+          </span>
+        </div>
       </div>
       <div class="animal-actions">
-        <button @click="goBack" class="btn btn-secondary">← Back to Animals</button>
+        <button @click="goBack" class="btn btn-secondary">
+          <span class="btn-icon">←</span>
+          Back to Animals
+        </button>
         <button @click="exportData" class="btn btn-success" :disabled="loading">
+          <span v-if="loading" aria-hidden="true" class="loading-spinner"></span>
+          <span class="btn-icon" v-else>📊</span>
           Export Excel
         </button>
       </div>
     </div>
 
-    <div v-if="error" class="error">
-      {{ error }}
-      <button @click="clearError" class="btn btn-secondary">Dismiss</button>
+    <!-- Error Alert -->
+    <div v-if="error" class="alert error">
+      <div>
+        <strong>Error:</strong> {{ error }}
+      </div>
+      <button @click="clearError" class="btn btn-secondary btn-sm">Dismiss</button>
     </div>
 
+    <!-- Loading State -->
     <div v-if="loading && !animal" class="loading">
       Loading animal details...
     </div>
@@ -26,7 +46,9 @@
       <!-- Add Event Form -->
       <div class="card">
         <h3>Add New Event</h3>
-        <form @submit.prevent="handleAddEvent">
+        <p class="text-secondary">Record a new medical event or observation for {{ animal.name }}</p>
+        
+        <form @submit.prevent="handleAddEvent" role="form">
           <div class="grid grid-2">
             <div class="form-group">
               <label for="type">Event Type *</label>
@@ -39,16 +61,18 @@
                 @blur="isSelectOpen = false"
                 @change="isSelectOpen = false"
                 required
+                aria-describedby="type-help"
               >
                 <option value="">Select event type</option>
                 <option value="Visit">Visit</option>
                 <option value="Treatment">Treatment</option>
                 <option value="Observation">Observation</option>
               </select>
+              <small id="type-help" class="sr-only">Select the type of event to record</small>
             </div>
             
             <div class="form-group">
-              <label for="event_date">Date *</label>
+              <label for="event_date">Event Date *</label>
               <input
                 id="event_date"
                 v-model="newEvent.event_date"
@@ -56,7 +80,9 @@
                 class="form-control date-input"
                 :min="minDate"
                 required
+                aria-describedby="date-help"
               />
+              <small id="date-help" class="sr-only">Select the date when the event occurred</small>
             </div>
           </div>
           
@@ -68,15 +94,18 @@
               class="form-control" 
               rows="3" 
               required
-              placeholder="Describe the event..."
+              placeholder="Describe the event in detail..."
+              aria-describedby="description-help"
             ></textarea>
+            <small id="description-help" class="sr-only">Provide a detailed description of the event</small>
           </div>
           
-          <div class="form-actions">
+          <div class="form-actions form-actions-center">
             <button type="button" @click="clearEventForm" class="btn btn-secondary">
-              Cancel
+              Clear Form
             </button>
-            <button type="submit" class="btn" :disabled="loading">
+            <button type="submit" class="btn btn-primary" :disabled="loading">
+              <span v-if="loading" aria-hidden="true" class="loading-spinner"></span>
               {{ loading ? 'Adding...' : 'Add Event' }}
             </button>
           </div>
@@ -86,9 +115,13 @@
       <!-- Events List -->
       <div class="card">
         <h3>Events History</h3>
+        <p class="text-secondary">Medical events and observations for {{ animal.name }}</p>
         
-        <div v-if="animal.events && animal.events.length === 0" class="loading">
-          No events recorded yet. Add the first event above.
+        <div v-if="animal.events && animal.events.length === 0" class="empty-state">
+          <div style="padding: var(--space-12) var(--space-8); text-align: center;">
+            <h4 style="margin-bottom: var(--space-4); color: var(--text-primary);">No events recorded yet</h4>
+            <p style="color: var(--text-secondary);">Add the first event using the form above to start tracking medical history.</p>
+          </div>
         </div>
         
         <div v-else>
@@ -97,46 +130,69 @@
             :key="event.id"
             class="event-item"
           >
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div style="flex: 1;">
+            <div class="event-header">
+              <div class="event-content">
                 <div class="event-type" :class="event.type">
                   {{ event.type }}
                 </div>
-                <p><strong>Date:</strong> {{ formatDate(event.event_date) }}</p>
-                <p><strong>Description:</strong> {{ event.description }}</p>
+                <div class="event-details">
+                  <p>
+                    <strong>Date: </strong> 
+                    <span>{{ formatDate(event.event_date) }}</span>
+                  </p>
+                  <p>
+                    <strong>Description: </strong> 
+                    <span>{{ event.description }}</span>
+                  </p>
+                </div>
               </div>
               <button
                 @click="confirmDeleteEvent(event)"
-                class="btn btn-danger"
-                style="margin-left: 1rem; padding: 0.5rem 1rem; font-size: 0.75rem;"
+                class="btn btn-danger btn-sm"
+                :aria-label="`Delete ${event.type} event from ${formatDate(event.event_date)}`"
               >
                 Delete
               </button>
             </div>
           </div>
         </div>
+        
+        <!-- Events Pagination -->
+        <Pagination
+          v-if="animal.events && animal.events.length > 0"
+          :current-page="eventsPagination.currentPage"
+          :total-pages="eventsPagination.totalPages"
+          :total-items="eventsPagination.totalItems"
+          :items-per-page="eventsPagination.itemsPerPage"
+          @page-change="handleEventsPageChange"
+        />
       </div>
     </div>
 
     <!-- Delete Event Confirmation Modal -->
-    <div v-if="showDeleteEventConfirmation" class="modal" @click.self="closeDeleteEventConfirmation">
+    <div v-if="showDeleteEventConfirmation" class="modal" @click.self="closeDeleteEventConfirmation" role="dialog" aria-labelledby="delete-event-title" aria-modal="true">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>Confirm Delete</h2>
-          <button @click="closeDeleteEventConfirmation" class="close-btn">&times;</button>
+          <h2 id="delete-event-title">Confirm Delete Event</h2>
+          <button @click="closeDeleteEventConfirmation" class="close-btn" aria-label="Close modal">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
 
-        <p style="margin-bottom: 1.5rem;">
-          Are you sure you want to delete this <strong>{{ eventToDelete?.type }}</strong> event?
-          This action cannot be undone.
-        </p>
+        <div class="alert error" style="margin-bottom: var(--space-6);">
+          <div>
+            <strong>Warning:</strong> Are you sure you want to delete this <strong>{{ eventToDelete?.type }}</strong> event from {{ eventToDelete ? formatDate(eventToDelete.event_date) : '' }}?
+            This action cannot be undone.
+          </div>
+        </div>
 
-        <div class="form-actions">
+        <div class="form-actions form-actions-center">
           <button @click="closeDeleteEventConfirmation" class="btn btn-secondary">
             Cancel
           </button>
           <button @click="handleDeleteEvent" class="btn btn-danger" :disabled="loading">
-            {{ loading ? 'Deleting...' : 'Delete' }}
+            <span v-if="loading" aria-hidden="true" class="loading-spinner"></span>
+            {{ loading ? 'Deleting...' : 'Delete Event' }}
           </button>
         </div>
       </div>
@@ -148,9 +204,13 @@
 import { useAnimalsStore } from '../stores/animals'
 import { onMounted, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Pagination from '../components/Pagination.vue'
 
 export default {
   name: 'AnimalDetails',
+  components: {
+    Pagination
+  },
   props: {
     id: {
       type: String,
@@ -236,12 +296,17 @@ export default {
       }
     }
 
+    const handleEventsPageChange = async (page) => {
+      await animalsStore.goToEventsPage(page)
+    }
+
     onMounted(async () => {
       await animalsStore.fetchAnimalDetails(props.id)
     })
 
     return {
       animal: computed(() => animalsStore.currentAnimal),
+      eventsPagination: computed(() => animalsStore.eventsPagination),
       loading: computed(() => animalsStore.loading),
       error: computed(() => animalsStore.error),
       isSelectOpen,
@@ -257,8 +322,63 @@ export default {
       minDate,
       confirmDeleteEvent,
       closeDeleteEventConfirmation,
-      handleDeleteEvent
+      handleDeleteEvent,
+      handleEventsPageChange
     }
   }
 }
 </script>
+
+<style scoped>
+.animal-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.meta-item {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.meta-item strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-8);
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: var(--radius-full);
+  animation: spin 1s linear infinite;
+  margin-right: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .animal-meta {
+    gap: var(--space-1);
+  }
+  
+  .meta-item {
+    font-size: var(--text-xs);
+  }
+}
+</style>
